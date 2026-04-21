@@ -99,6 +99,9 @@
                     <a href="#" onclick="navigate('pos')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-cash-register w-6 text-slate-400 group-hover:text-amber-500"></i> Caja / Ventas
                     </a>
+                    <a href="#" onclick="navigate('waiters')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                        <i class="fas fa-bell-concierge w-6 text-slate-400 group-hover:text-amber-500"></i> Meseros / Salón
+                    </a>
                     <a href="#" onclick="navigate('products')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-box-open w-6 text-slate-400 group-hover:text-amber-500"></i> Productos
                     </a>
@@ -168,6 +171,7 @@
         <!-- Ticket content gets generated here -->
     </div>
 
+    <script src="waiters-module.js"></script>
     <script>
         // --- ESTADO GLOBAL Y UTILIDADES ---
         const DB_KEY = 'newcloud_pos_db_v1';
@@ -191,6 +195,10 @@
                 phone: '',
                 address: '',
                 footer: 'Gracias por su compra'
+            },
+            waiterModule: {
+                tables: Array.from({ length: 12 }, (_, idx) => ({ id: `M${idx + 1}`, name: `Mesa ${idx + 1}` })),
+                comandas: []
             }
         };
 
@@ -211,6 +219,9 @@
         if (!db.expenses) db.expenses = [];
         if (!db.creditPayments) db.creditPayments = [];
         if (!db.invoiceSettings) db.invoiceSettings = JSON.parse(JSON.stringify(initialData.invoiceSettings));
+        if (window.WaitersModule && typeof window.WaitersModule.ensureData === 'function') {
+            window.WaitersModule.ensureData(db);
+        }
         db.products = (db.products || []).map((product) => {
             const baseSell = Number(product.sellPrice ?? product.sellPrices?.[0] ?? 0);
             const normalizedSellPrices = [0, 1, 2].map((idx) => {
@@ -389,6 +400,10 @@
                 case 'pos':
                     title.innerText = 'Punto de Venta (Caja)';
                     renderPOS(content);
+                    break;
+                case 'waiters':
+                    title.innerText = 'Módulo de Meseros / Salón';
+                    renderWaiters(content);
                     break;
                 case 'inventory':
                     title.innerText = 'Inventario & Kardex';
@@ -764,6 +779,7 @@
         // --- VISTA POS (CAJA Y VENTAS)
          let productEditing = null;
         let currentCart = [];
+        let currentCartSourceTableId = null;
         let posCategoryFilter = 'Todos';
         let posSearchTimer = null;
         const POS_MAX_RENDER_ITEMS = 120;
@@ -787,7 +803,26 @@
 
         refreshPOSSearchIndex();
         
+
+        function renderWaiters(container) {
+            if (!window.WaitersModule || typeof window.WaitersModule.render !== 'function') {
+                container.innerHTML = '<div class="text-red-400">No se pudo cargar el módulo de meseros.</div>';
+                return;
+            }
+            window.WaitersModule.render(container, {
+                db,
+                saveDB,
+                formatMoney,
+                showToast,
+                refreshPOSSearchIndex,
+                loadOrderToPos: (tableId) => {
+                    loadTableOrderToPOS(tableId, { navigateToPOS: true });
+                }
+            });
+        }
+
         function renderPOS(container) {
+
             container.innerHTML = `
                 <div class="flex flex-col h-full gap-4">
                     <!-- Header Caja -->
@@ -835,9 +870,14 @@
 
                         <!-- Panel Derecho: Ticket -->
                         <div class="bg-slate-800 rounded-xl border border-slate-700 min-h-0 flex flex-col h-full shadow-2xl">
-                            <div class="p-4 bg-slate-900 border-b border-slate-700 rounded-t-xl flex justify-between items-center">
+                            <div class="p-4 bg-slate-900 border-b border-slate-700 rounded-t-xl flex justify-between items-center gap-2">
                                 <span class="font-bold text-amber-500 tracking-wide"><i class="fas fa-receipt mr-2"></i>TICKET ACTUAL</span>
-                                <button onclick="clearCart()" class="text-xs text-red-500 hover:text-red-400 flex items-center gap-1"><i class="fas fa-trash"></i> LIMPIAR</button>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="openLoadMesaModal()" class="text-xs text-indigo-300 hover:text-indigo-200 flex items-center gap-1 border border-indigo-700 rounded px-2 py-1">
+                                        <i class="fas fa-table"></i> Cargar pedido de mesa
+                                    </button>
+                                    <button onclick="clearCart()" class="text-xs text-red-500 hover:text-red-400 flex items-center gap-1"><i class="fas fa-trash"></i> LIMPIAR</button>
+                                </div>
                             </div>
                             
                             <div id="pos-cart-items" class="flex-1 min-h-0 overflow-y-auto p-3 space-y-2 text-sm bg-slate-800/50">
@@ -1123,7 +1163,62 @@
         }
         function clearCart() {
             currentCart = [];
+            currentCartSourceTableId = null;
             updateCartUI();
+        }
+
+        function getPendingTableOrders() {
+            if (!window.WaitersModule) return [];
+            return window.WaitersModule.getPendingOrders(db) || [];
+        }
+
+        function openLoadMesaModal() {
+            const pending = getPendingTableOrders();
+            if (!pending.length) {
+                showToast('No hay pedidos pendientes por cargar', 'error');
+                return;
+            }
+            const options = pending.map((order) => `<option value="${order.tableId}">${order.tableId} · ${order.items.length} items</option>`).join('');
+            const modalHTML = `
+                <div id="load-mesa-modal" class="fixed inset-0 bg-slate-950/80 flex items-center justify-center z-50">
+                    <div class="bg-slate-800 rounded-xl w-full max-w-md p-6 shadow-2xl border border-slate-700">
+                        <h2 class="text-xl font-bold mb-4 text-white">Cargar Pedido de Mesa</h2>
+                        <select id="mesa-order-select" class="w-full bg-slate-900 border border-slate-600 rounded p-3 mb-4">${options}</select>
+                        <div class="flex justify-end gap-2">
+                            <button onclick="document.getElementById('load-mesa-modal').remove()" class="px-4 py-2 text-slate-300">Cancelar</button>
+                            <button onclick="confirmLoadMesaOrder()" class="px-4 py-2 bg-indigo-600 rounded text-white font-bold">Cargar al ticket</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function confirmLoadMesaOrder() {
+            const tableId = document.getElementById('mesa-order-select')?.value;
+            if (!tableId) return;
+            loadTableOrderToPOS(tableId, { navigateToPOS: false });
+            document.getElementById('load-mesa-modal')?.remove();
+        }
+
+        function loadTableOrderToPOS(tableId, options = { navigateToPOS: true }) {
+            if (!window.WaitersModule) return;
+            const comanda = window.WaitersModule.getActiveComandaByTable(db, tableId);
+            if (!comanda || !comanda.items?.length) {
+                showToast('La mesa no tiene pedido pendiente', 'error');
+                return;
+            }
+            if (currentCart.length > 0) {
+                const replace = confirm('El ticket actual tiene productos. ¿Deseas reemplazarlo por la comanda de mesa?');
+                if (!replace) return;
+            }
+            currentCart = window.WaitersModule.toCartItems(comanda.items);
+            currentCartSourceTableId = tableId;
+            window.WaitersModule.markOrderLoaded(db, tableId);
+            saveDB();
+            updateCartUI();
+            showToast(`Pedido ${tableId} cargado en caja`);
+            if (options.navigateToPOS) navigate('pos');
         }
 
         // --- CAJA Y CHECKOUT ---
@@ -1330,6 +1425,11 @@
             }
 
             db.sales.push(sale);
+
+            if (currentCartSourceTableId && window.WaitersModule) {
+                window.WaitersModule.closeOrder(db, currentCartSourceTableId);
+            }
+
             saveDB();
 
             // Abrir gaveta para cobros en efectivo (si hay integración de hardware).
@@ -1343,6 +1443,7 @@
             document.getElementById('checkout-modal').remove();
             printTicket(sale);
             currentCart = [];
+            currentCartSourceTableId = null;
             navigate('pos');
             showToast('Venta Registrada Exitosamente');
         }
