@@ -14,6 +14,10 @@
     if (!Array.isArray(db.waiterModule.comandas)) {
       db.waiterModule.comandas = [];
     }
+    db.waiterModule.comandas = db.waiterModule.comandas.map((comanda) => ({
+      note: '',
+      ...comanda
+    }));
   }
 
   function getActiveComandaByTable(db, tableId) {
@@ -39,6 +43,7 @@
         tableId,
         waiterUser,
         status: 'draft',
+        note: '',
         items: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -71,9 +76,13 @@
 
     let selectedTableId = db.waiterModule.tables[0]?.id || null;
     let waiterSearch = '';
+    let waiterCategory = 'Todas';
 
     function redraw() {
+      const categories = ['Todas', ...new Set((db.products || []).map((p) => p.category || 'Sin categoría'))];
       const products = (db.products || []).filter((p) => {
+        const category = p.category || 'Sin categoría';
+        if (waiterCategory !== 'Todas' && category !== waiterCategory) return false;
         if (!waiterSearch) return true;
         const text = `${p.name || ''} ${p.code || ''} ${p.category || ''}`.toLowerCase();
         return text.includes(waiterSearch.toLowerCase());
@@ -134,6 +143,10 @@
               <span class="text-xs text-slate-500">${activeComanda?.status || 'draft'}</span>
             </div>
             <div class="flex-1 overflow-y-auto space-y-2 pr-1">${comandaItems}</div>
+            <div class="mt-3">
+              <label class="text-xs text-slate-400">Nota del pedido</label>
+              <textarea id="waiter-note" rows="2" placeholder="Ej: sin cebolla, término medio..." class="w-full mt-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm"></textarea>
+            </div>
             <div class="pt-3 border-t border-slate-700 mt-3 space-y-2">
               <button onclick="WaitersModule.sendOrder()" class="w-full py-2 rounded-lg bg-amber-500 text-slate-900 font-bold">Enviar pedido</button>
               <button onclick="WaitersModule.sendToPOS()" class="w-full py-2 rounded-lg bg-indigo-600 text-white font-bold">Mandar a caja</button>
@@ -144,6 +157,9 @@
           <section class="xl:col-span-1 bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col min-h-0">
             <div class="flex items-center gap-2 mb-3">
               <h3 class="font-bold text-amber-500">Menú</h3>
+              <select id="waiter-category" class="bg-slate-900 border border-slate-600 rounded px-2 py-1.5 text-xs">
+                ${categories.map((cat) => `<option value="${cat}" ${cat === waiterCategory ? 'selected' : ''}>${cat}</option>`).join('')}
+              </select>
               <input id="waiter-search" placeholder="Buscar..." class="ml-auto bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-sm w-44">
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 overflow-y-auto pr-1">${productsHtml}</div>
@@ -157,6 +173,23 @@
         searchInput.addEventListener('input', (e) => {
           waiterSearch = e.target.value || '';
           redraw();
+        });
+      }
+      const categoryInput = document.getElementById('waiter-category');
+      if (categoryInput) {
+        categoryInput.value = waiterCategory;
+        categoryInput.addEventListener('change', (e) => {
+          waiterCategory = e.target.value || 'Todas';
+          redraw();
+        });
+      }
+      const noteInput = document.getElementById('waiter-note');
+      if (noteInput && activeComanda) {
+        noteInput.value = activeComanda.note || '';
+        noteInput.addEventListener('input', (e) => {
+          activeComanda.note = e.target.value || '';
+          activeComanda.updatedAt = new Date().toISOString();
+          saveDB();
         });
       }
     }
