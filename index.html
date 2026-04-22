@@ -90,39 +90,39 @@
                     </div>
                 </div>
                 <nav class="mt-6 flex-1 overflow-y-auto space-y-1 px-2">
-                    <a href="#" onclick="navigate('dashboard')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="dashboard" onclick="navigate('dashboard')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-chart-pie w-6 text-slate-400 group-hover:text-amber-500"></i> Dashboard
                     </a>
-                    <a href="#" onclick="navigate('profits')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="profits" onclick="navigate('profits')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-hand-holding-dollar w-6 text-slate-400 group-hover:text-amber-500"></i> Ganancias
                     </a>
-                    <a href="#" onclick="navigate('pos')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="pos" onclick="navigate('pos')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-cash-register w-6 text-slate-400 group-hover:text-amber-500"></i> Caja / Ventas
                     </a>
-                    <a href="#" onclick="navigate('waiters')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="waiters" onclick="navigate('waiters')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-bell-concierge w-6 text-slate-400 group-hover:text-amber-500"></i> Meseros / Salón
                     </a>
-                    <a href="#" onclick="navigate('products')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="products" onclick="navigate('products')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-box-open w-6 text-slate-400 group-hover:text-amber-500"></i> Productos
                     </a>
-                    <a href="#" onclick="navigate('inventory')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="inventory" onclick="navigate('inventory')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-boxes w-6 text-slate-400 group-hover:text-amber-500"></i> Inventario
                     </a>
-                    <a href="#" onclick="navigate('clients')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="clients" onclick="navigate('clients')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-users w-6 text-slate-400 group-hover:text-amber-500"></i> Clientes / Fiados
                     </a>
-                    <a href="#" onclick="navigate('suppliers')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="suppliers" onclick="navigate('suppliers')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-truck-loading w-6 text-slate-400 group-hover:text-amber-500"></i> Proveedores / Gastos
                     </a>
-                    <a href="#" onclick="navigate('invoice-config')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="invoice-config" onclick="navigate('invoice-config')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-file-invoice w-6 text-slate-400 group-hover:text-amber-500"></i> Configurar factura
                     </a>
-                    <a href="#" onclick="navigate('admin')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
+                    <a href="#" data-view="admin" onclick="navigate('admin')" class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-md hover:bg-slate-800 hover:text-amber-500 transition-colors">
                         <i class="fas fa-cog w-6 text-slate-400 group-hover:text-amber-500"></i> Administración
                     </a>
-                    <button id="exportarDatos">📤 Exportar datos</button>
+                    <button id="exportarDatos" data-view="admin-tools">📤 Exportar datos</button>
 <input type="file" id="importarArchivo" accept=".json" hidden>
-<button id="importarDatos">📥 Importar datos</button>
+<button id="importarDatos" data-view="admin-tools">📥 Importar datos</button>
 
                 </nav>
             </div>
@@ -333,6 +333,20 @@
         mobileMenuBtn.addEventListener('click', openMobileMenu);
         mobileCloseBtn.addEventListener('click', closeMobileMenu);
         mobileOverlay.addEventListener('click', closeMobileMenu);
+        function isWaiterRole() {
+            return (db.currentUser?.role || '').toLowerCase() === 'mesero';
+        }
+
+        function applyRolePermissions() {
+            const isWaiter = isWaiterRole();
+            const allowedForWaiter = new Set(['waiters']);
+            document.querySelectorAll('[data-view]').forEach((el) => {
+                const view = el.getAttribute('data-view');
+                const canView = !isWaiter || allowedForWaiter.has(view);
+                el.classList.toggle('hidden', !canView);
+            });
+        }
+
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 768) {
                 mobileOverlay.classList.add('hidden');
@@ -357,8 +371,9 @@
                 document.getElementById('user-role-display').innerText = foundUser.role.toUpperCase();
                 loginScreen.classList.add('hidden');
                 appLayout.classList.remove('hidden');
+                applyRolePermissions();
                 updateCajaStatus();
-                navigate('dashboard');
+                navigate(isWaiterRole() ? 'waiters' : 'dashboard');
             } else {
                 showToast('Credenciales incorrectas', 'error');
             }
@@ -373,6 +388,9 @@
         // --- NAVEGACIÓN ---
         function navigate(view) {
             closeMobileMenu();
+            if (isWaiterRole() && view !== 'waiters') {
+                view = 'waiters';
+            }
             const content = document.getElementById('content-area');
             const title = document.getElementById('page-title');
             content.innerHTML = '';
@@ -777,9 +795,10 @@
         }
 
         // --- VISTA POS (CAJA Y VENTAS)
-         let productEditing = null;
+        let productEditing = null;
         let currentCart = [];
         let currentCartSourceTableId = null;
+        let currentCartNote = '';
         let posCategoryFilter = 'Todos';
         let posSearchTimer = null;
         const POS_MAX_RENDER_ITEMS = 120;
@@ -887,6 +906,7 @@
                                     <p>Ticket Vacío</p>
                                 </div>
                             </div>
+                            <div id="pos-cart-note" class="px-3 py-2 text-xs text-amber-300 border-t border-slate-700 bg-slate-900/40 hidden"></div>
 
                             <div class="p-4 bg-slate-900 border-t border-slate-700 rounded-b-xl">
                                 <div class="flex justify-between mb-1 text-slate-400 text-sm">
@@ -1078,6 +1098,7 @@
             const cartContainer = document.getElementById('pos-cart-items');
             const totalEl = document.getElementById('pos-total');
             const subtotalEl = document.getElementById('pos-subtotal');
+            const noteEl = document.getElementById('pos-cart-note');
             
             if(currentCart.length === 0) {
                 cartContainer.innerHTML = `
@@ -1087,6 +1108,10 @@
                     </div>`;
                 if(totalEl) totalEl.innerText = formatMoney(0);
                 if(subtotalEl) subtotalEl.innerText = formatMoney(0);
+                if (noteEl) {
+                    noteEl.classList.add('hidden');
+                    noteEl.innerText = '';
+                }
                 return;
             }
 
@@ -1125,6 +1150,15 @@
             const total = currentCart.reduce((acc, item) => acc + (item.qty * item.price), 0);
             if(totalEl) totalEl.innerText = formatMoney(total);
             if(subtotalEl) subtotalEl.innerText = formatMoney(total);
+            if (noteEl) {
+                if (currentCartNote) {
+                    noteEl.classList.remove('hidden');
+                    noteEl.innerText = `Nota de mesa: ${currentCartNote}`;
+                } else {
+                    noteEl.classList.add('hidden');
+                    noteEl.innerText = '';
+                }
+            }
         }
 
         function updateItemQty(idx, val) {
@@ -1164,6 +1198,7 @@
         function clearCart() {
             currentCart = [];
             currentCartSourceTableId = null;
+            currentCartNote = '';
             updateCartUI();
         }
 
@@ -1214,6 +1249,7 @@
             }
             currentCart = window.WaitersModule.toCartItems(comanda.items);
             currentCartSourceTableId = tableId;
+            currentCartNote = comanda.note || '';
             window.WaitersModule.markOrderLoaded(db, tableId);
             saveDB();
             updateCartUI();
@@ -1411,7 +1447,8 @@
                 payAmount: method === 'Credito' ? 0 : payAmount,
                 paidAmount: method === 'Credito' ? 0 : total,
                 change: method === 'Credito' ? 0 : change,
-                user: db.currentUser.user
+                user: db.currentUser.user,
+                note: currentCartNote || ''
             };
 
             // Manejo de dinero y deudas
@@ -1444,6 +1481,7 @@
             printTicket(sale);
             currentCart = [];
             currentCartSourceTableId = null;
+            currentCartNote = '';
             navigate('pos');
             showToast('Venta Registrada Exitosamente');
         }
@@ -1973,6 +2011,7 @@
             Pago: ${sale.method}<br>
             ${creditClient ? `Cliente: ${creditClient.name}<br>` : ''}
             ${sale.method === 'Credito' ? `Saldo pendiente: ${formatMoney(pendingCredit)}<br>` : ''}
+            ${sale.note ? `Nota: ${sale.note}<br>` : ''}
             <br>
             ${db.invoiceSettings.footer || 'Gracias por su compra'}
         </body>
@@ -2356,6 +2395,7 @@
                             <label class="text-xs font-bold text-slate-500 uppercase">Rol</label>
                             <select id="u-role" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white">
                                 <option value="cajero">Cajero</option>
+                                <option value="mesero">Mesero</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
